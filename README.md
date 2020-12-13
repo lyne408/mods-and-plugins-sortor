@@ -60,6 +60,8 @@ This feature is optional, default is enable.
 2. Download the latest releases and extract it.
 
 3. Config the installation path of your MO2 portable instance
+	
+	Open `./dist/SortMod.js` which contains the following JavaScript code: 
 
    ```javascript
    const moTwoInstallationDirectory = 'D:\\TES\\SE_Program\\Mod Organizer 2 (Archive)-6194-2-3-0';
@@ -69,7 +71,7 @@ This feature is optional, default is enable.
 
    - Use "\\\\" as path separator.
 
-   - Ensure  it's quote by '.
+   - Ensure it was quoted by '.
 
    Then save.
 
