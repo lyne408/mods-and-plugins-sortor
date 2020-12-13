@@ -974,7 +974,7 @@ export type ReserveSmallerFileParameter = {
  * @param {string} targetDir
  * @param {boolean} isSameExtname 是否比较扩展名
  */
-export async function reserveSmallerFile ({ reservedDir, comparedDir, isSameExtname = true }: ReserveSmallerFileParameter): Promise<void> {
+export async function reserveSmallerFiles ({ reservedDir, comparedDir, isSameExtname = true }: ReserveSmallerFileParameter): Promise<void> {
 
 
 	/*
