@@ -4,7 +4,7 @@ Sort the mods and plugins in a profile of Mod Organizer 2, let the mod's name de
 
 ## Requirement
 
-- **Node.js**
+- [**Node.js**](nodejs.org)
 
   Node is a JavaScript runtime, download and install it.
   I'm sorry for that. I am a JavaScript developer, not C++.
