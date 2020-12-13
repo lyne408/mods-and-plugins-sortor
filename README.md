@@ -83,7 +83,7 @@ This feature is optional, default is enable.
 
 ## Configuration
 
-Open `./dist/SortMod.js` when contains the following JavaScript code:
+Open `./dist/SortMod.js` which contains the following JavaScript code:
 
 ```JavaScript
 const moTwoInstallationDirectory = 'D:\\TES\\SE_Program\\Mod Organizer 2 (Archive)-6194-2-3-0';
