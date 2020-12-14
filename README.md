@@ -268,7 +268,7 @@ The name of backup file is like `modlist.txt_backup_2020-05-29_17-53-12_955`.
 5. Execute `scripts/SortModsAndPlugins.bat` of your extracted directory, then will sort the selected profile.
 
     Afater sorting done, like this window.
-
+    
     ![sort-done](./docs/assets/sort-done.jpg)
 
 6. After sorting, reload selected profile(such as switch to another profile then switch back).
