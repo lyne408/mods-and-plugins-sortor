@@ -10,6 +10,7 @@
 
 - Now the feature "sort mods" is *optional*, *disabled* by default, not like `v1.0.x`.
 - Now if sort plugins, the mod priority determine it's plugins' priorities.
+
   Instead of the name priority of the mod, not like `v1.0.x`.
 
 **Documents**
@@ -46,7 +47,9 @@ Initial release.
 **Features**
 
 - Sort mods by name.
+
   *Force*.
 - Sort plugins, the name's priority of one mod determine it's plugins' priorites.
+
   *Optinal*, *enabled* by default.
 
