@@ -62,7 +62,7 @@ export function deleteString (sourceStr: string, deleteStr: string): string {
 
 	// slice 也可以, hyphen 译为分隔符
 	// sourceStr = sourceStr.slice(0, hyphenIndex - 1) + sourceStr.slice(hyphenIndex + 1)
-	if (sourceStr.indexOf(deleteStr) >= 0) {
+	if (sourceStr.includes(deleteStr)) {
 		return sourceStr.replace(deleteStr, '')
 	} else {
 		return sourceStr
@@ -75,26 +75,36 @@ export function deleteString (sourceStr: string, deleteStr: string): string {
  * @param deleteStringArray
  */
 export function deleteStrings (sourceStr: string, deleteStringArray: Array<string>): string {
-	for (let i = 0; i < deleteStringArray.length; i++) {
-		sourceStr = deleteString(sourceStr, deleteStringArray[i])
+	for (const delStr of deleteStringArray) {
+		sourceStr = deleteString(sourceStr, delStr)
+	}
+	return sourceStr
+}
+
+
+/**
+ * 替换多个字符串为某一个字符串
+ *
+ * @param {string} sourceStr
+ * @param {Array<string>} replaceStringArray
+ * @param {string} targetString
+ * @return {string}
+ */
+export function replaceStrings (sourceStr: string, replaceStringArray: Array<string>, targetString: string): string {
+	for (const replaceStr of replaceStringArray) {
+		sourceStr = sourceStr.replace(replaceStr, targetString)
 	}
 	return sourceStr
 }
 
 /**
- * 替换多个字符串为某一个字符串
- * @param sourceStr
- * @param deleteStringArray
+ *
+ * @param {string} sourceString
+ * @param {Map<string, string>} map Map<oldStrKey, newStrValue>
+ * @return {string}
  */
-export function replaceStrings (sourceStr: string, replaceStringArray: Array<string>, targetString: string): string {
-	for (let i = 0; i < replaceStringArray.length; i++) {
-		sourceStr = sourceStr.replace(replaceStringArray[i], targetString)
-	}
-	return sourceStr
-}
-
 export function replaceStringsByMap (sourceString: string, map: Map<string, string>): string {
-	map.forEach((value, key) => {
+	map.forEach((newStrValue, oldStrKey) => {
 		// [Lyne] replace(oldStr, newStr),  若 oldStr 只是个字符串, 只会替换一次.
 		// 如需全局替换, 使用正则表达式, 也可采用其它的方式
 		/*******不使用正则全局匹配****/
@@ -116,10 +126,12 @@ export function replaceStringsByMap (sourceString: string, map: Map<string, stri
 
 		/*** 采用 split(), join() 方案 ***/
 		/* 这样也不用每次创建正则对象了 */
-		let noOldStrArray: Array<string> = sourceString.split(key)
-		sourceString = noOldStrArray.join(value)
+		// 没遍历一次就替换一次
+		let noOldStrArray: Array<string> = sourceString.split(oldStrKey)
+		sourceString = noOldStrArray.join(newStrValue)
 
 	})
+
 	return sourceString
 }
 
@@ -138,6 +150,7 @@ export function reserveLettersAndSpace (str: string): string {
 			delete charArray[i]
 		}
 	}
+	
 	return charArray.join('')
 }
 

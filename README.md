@@ -1,6 +1,6 @@
 [TOC]
 
-
+<!-- toc -->
 
 # mods-and-plugins-sortor
 
@@ -10,6 +10,8 @@
 ![cover](./docs/assets/cover.jpg)
 
 ## What's this project?
+
+Sort the plugins in a profile of Mod Organizer 2, let the mod's priority determine it's plugins' priorities. Also support sort mods by name.    
 
 "Mods and Plugins Sortor for Mod Organizer 2" is an utility for those person which prefer to sort mods and plugins **manually**.
 
@@ -152,9 +154,7 @@ Above all:
 
 ----
 
-
-
-####　Category Marks and Order Marks
+#### Category Marks and Order Marks
 
 There five mods, each name has at least one prefix.
 

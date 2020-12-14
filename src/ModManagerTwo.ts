@@ -1,7 +1,6 @@
-import fs from 'fs'
-import ini from 'ini'
 import path from 'path'
-import { getSubdirectories } from './util/FSUtil'
+import ini from 'ini'
+import { getSubdirectories, readFileUTF8 } from './util/FSUtil'
 import { getMiddle } from './util/RegExpUtil'
 import ModManagerTwoProfile, {SortParameter} from './ModManagerTwoProfile'
 
@@ -231,8 +230,9 @@ export default class ModManagerTwo {
 	async init (installationDirectory: string) {
 		this.installationDirectory = installationDirectory
 		const configFilePath = path.resolve(this.installationDirectory, ModManagerTwo.configFileName)
-		const ancestorNode = ini.parse(fs.readFileSync(configFilePath, 'utf-8'))
 
+		const fileContent = await readFileUTF8(configFilePath)
+		const ancestorNode = ini.parse(fileContent)
 		this.modDirectory = ancestorNode[ModManagerTwo.settingsOptionName][ModManagerTwo.modDirectoryPropertyName]
 		console.info(`[Info]`, `Mod directory: ${this.modDirectory}`)
 

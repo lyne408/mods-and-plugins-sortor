@@ -4,6 +4,8 @@
 
 ### 1.1.0
 
+2020-12-15
+
 **Features**
 
 - Now the feature "sort mods" is *optional*, *disabled* by default, not like `v1.0.x`.

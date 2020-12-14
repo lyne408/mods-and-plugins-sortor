@@ -1177,3 +1177,11 @@ export async function writeArrayToFile ({
 	})
 }
 
+/**
+ *
+ * @param {string} filePath
+ * @return {Promise<string>}
+ */
+export async function readFileUTF8 (filePath: string): Promise<string> {
+	return fsPromises.readFile(filePath, {encoding: 'utf-8'})
+}
