@@ -319,4 +319,4 @@ I write changelog in a separate document.
 
 See `docs/Changelog.md`.
 
-[Changelog](./docs/Changlog.md)
+[Changelog](./docs/Changelog.md)
