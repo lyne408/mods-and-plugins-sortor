@@ -2,6 +2,25 @@
 
 <!-- toc -->
 
+- [mods-and-plugins-sortor](#mods-and-plugins-sortor)
+  * [What's this project?](#whats-this-project)
+    + [Sort the plugins](#sort-the-plugins)
+    + [Sort the mods](#sort-the-mods)
+    + [Is this meant to replace LOOT?](#is-this-meant-to-replace-loot)
+  * [Requirement](#requirement)
+  * [Features](#features)
+    + [Sort plugins](#sort-plugins)
+    + [Sort mods](#sort-mods)
+      - [Why add this feature?](#why-add-this-feature)
+      - [Category Marks and Order Marks](#category-marks-and-order-marks)
+      - [The Ways to Manage Resources](#the-ways-to-manage-resources)
+    + [Backup before sorting](#backup-before-sorting)
+  * [Usage](#usage)
+  * [Configuration](#configuration)
+  * [Changelog](#changelog)
+
+<!-- tocstop -->
+
 # mods-and-plugins-sortor
 
 "mods-and-plugins-sortor" is a synonym for "Mods and Plugins Sortor for Mod Organizer 2".
