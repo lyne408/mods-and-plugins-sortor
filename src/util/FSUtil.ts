@@ -797,10 +797,26 @@ filterFilesAndDirectories(), filterFiles(), filterDirectories() 就是三个常�
 
 */
 
+/*
+[lyne]
+
+// TypeScript 内置的工具类型, 应使用 | 分隔多个属性
+Omit<FilterFilesAndDirectoriesParameter, 'isGetFiles' | 'isGetDirectories'>
+
+// 不应使用 &, 虽然不报错, 但是结果却是允许出现 isGetFiles 和 isGetDirectories 属性, 这里只是属性, 又不是类型的交叉和联合
+Omit<FilterFilesAndDirectoriesParameter, 'isGetFiles' & 'isGetDirectories'>
+
+
+// typescript 不支持这种语法, 也没有必要支持, 因为只需要操作属性即可
+export type FilterFilesParameter = Omit<FilterFilesAndDirectoriesParameter, {isGetFiles?: boolean; isGetDirectories?: boolean;}>
+*/
+
+
 /**
  * <functionalParameterType function="filterFiles" />
  */
 export type FilterFilesParameter = Omit<FilterFilesAndDirectoriesParameter, 'isGetFiles' | 'isGetDirectories'>
+
 
 /**
  * filter files

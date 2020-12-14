@@ -1,16 +1,19 @@
 import fs from 'fs'
 import ini from 'ini'
 import path from 'path'
-import ModManagerTwoProfile from './ModManagerTwoProfile'
 import { getSubdirectories } from './util/FSUtil'
 import { getMiddle } from './util/RegExpUtil'
+import ModManagerTwoProfile, {SortParameter} from './ModManagerTwoProfile'
+
+type SortProfileBaseParameter = Omit<SortParameter, 'onFinish'>
 
 /**
- * the only one parameter of sortProfilesByConfig()
+ * <functionalParameterType function="sortProfilesByConfig" />
  */
 type SortProfilesByConfigParameter = {
 	/**
 	 * MO2 Portable installation directory
+	 *
 	 * <necessity required />
 	 */
 	moTwoInstallationDirectory: string
@@ -37,19 +40,24 @@ type SortProfilesByConfigParameter = {
 	 *
 	 */
 	isOnlySortSelectedProfile?: boolean,
-	/**
-	 * determine whether to backup files
-	 * <necessity optional />
-	 */
-	isBackup?:boolean
-	/**
-	 * determine whether to sort plugins
-	 * <necessity optional />
-	 */
-	isSortPlugins?: boolean
-}
+} & SortProfileBaseParameter
 
 export type ExecutionConfig = SortProfilesByConfigParameter
+
+// [lyne] Type1 & Type2 交叉形成的类型具有两个 Type1 和 Type2 的属性
+/**
+ * <functionalParameterType function="sortSelectedProfile" />
+ */
+export type SortSelectedProfileParameter = {
+	onFinish?: (selectProfileName: string) => void
+} & SortProfileBaseParameter
+
+/**
+ * <functionalParameterType function="sortAllProfiles" />
+ */
+export type SortAllProfilesParameter = {
+	onFinish?: (profileNames: Array<string>) => void
+} & SortProfileBaseParameter
 
 /**
  * sort profiles by given config object
@@ -60,6 +68,7 @@ export type ExecutionConfig = SortProfilesByConfigParameter
  * @param {boolean | undefined} isSortAllProfiles
  * @param {boolean | undefined} isOnlySortSelectedProfile
  * @param {boolean | undefined} isBackup
+ * @param {boolean | undefined} isSortModsByName
  * @param {boolean | undefined} isSortPlugins
  * @return {Promise<void>}
  */
@@ -68,16 +77,22 @@ export async function sortProfilesByConfig ({
 	isSortAllProfiles = false,
 	isOnlySortSelectedProfile = true,
 	isBackup = true,
+	isSortModsByName = false,
 	isSortPlugins = true
-}:SortProfilesByConfigParameter) {
+}: SortProfilesByConfigParameter) {
 	let mo2 = new ModManagerTwo()
-	mo2.init(moTwoInstallationDirectory).then(() => {
-		if (isSortAllProfiles) {
-			return mo2.sortAllProfiles(isBackup, isSortPlugins)
-		} else if (isOnlySortSelectedProfile) {
-			return mo2.sortSelectedProfile(isBackup, isSortPlugins)
-		}
-	})
+	await mo2.init(moTwoInstallationDirectory)
+	let sortProfileParameterObj = {
+		isBackup,
+		isSortPlugins,
+		isSortModsByName
+	}
+	if (isSortAllProfiles) {
+		return mo2.sortAllProfiles(sortProfileParameterObj)
+	}
+	else if (isOnlySortSelectedProfile) {
+		return mo2.sortSelectedProfile(sortProfileParameterObj)
+	}
 }
 /**
  * 类 ModManager
@@ -244,33 +259,46 @@ export default class ModManagerTwo {
 	 *
 	 * @param {boolean} isBackup  whether to backup original files
 	 * @param {boolean} isSortPlugins whether to sort plugins
-	 * @param {() => void} onFinish callback after finishing
+	 * @param onFilish
 	 * @return {Promise<void>}
 	 *
 	 * <dependencies>
 	 *    <method name="init" parameterQueue="[string]"/>
 	 * </dependencies>
 	 */
-	async sortSelectedProfile (isBackup: boolean, isSortPlugins: boolean, onFinish: () => void = () => {
-		console.info(`[Info]`, `Profile [${this.selectedProfileName}] sorted!`)
-	}) {
+	async sortSelectedProfile ({
+		isBackup= true,
+		isSortModsByName = false,
+		isSortPlugins = true,
+		onFinish,
+	}: SortSelectedProfileParameter) {
 		let selectedProfile = new ModManagerTwoProfile()
 
-		return selectedProfile.init({
+		await selectedProfile.init({
 			modDirectory: this.modDirectory,
 			allModsSorted: this.allModsSorted,
-			profileDirectory: path.resolve(this.profilesDirectory, this.selectedProfileName),
-			isSortPlugins
-		}).then(() => {
-			selectedProfile.sort(isBackup, onFinish)
+			profileDirectory: path.resolve(this.profilesDirectory, this.selectedProfileName)
 		})
+
+		await selectedProfile.sort({
+			isBackup,
+			isSortModsByName,
+			isSortPlugins
+		})
+		if (typeof onFinish === 'function') {
+			onFinish(this.selectedProfileName)
+		}else {
+			console.info(`[Info]`, `Profile [${this.selectedProfileName}] sorted!`)
+		}
+
 	}
 
 	/**
 	 * sort all profiles
 	 *
-	 * @param {boolean} isBackup
-	 * @param {boolean} isSortPlugins
+	 * @param {boolean | undefined} isBackup
+	 * @param {boolean | undefined} isSortModsByName
+	 * @param {boolean | undefined} isSortPlugins
 	 * @param {() => void} onFinish
 	 * @return {Promise<void>}
 	 *
@@ -278,27 +306,34 @@ export default class ModManagerTwo {
 	 *    <method name="init" parameterQueue="[string]"/>
 	 * </dependencies>
 	 */
-	async sortAllProfiles (isBackup: boolean, isSortPlugins: boolean, onFinish: () => void = () => {
-		console.info(`[Info]`, `All profiles sorted!`)
-	}) {
-		return Promise.all(this.profileNames.map((profileName) => {
+	async sortAllProfiles ({
+		isBackup= true,
+		isSortModsByName = false,
+		isSortPlugins = true,
+		onFinish,
+	}: SortAllProfilesParameter) {
+
+		await Promise.all(this.profileNames.map(async (profileName) => {
 			let profile = new ModManagerTwoProfile()
-			return profile.init({
+			await profile.init({
 				modDirectory: this.modDirectory,
 				allModsSorted: this.allModsSorted,
 				profileDirectory: path.resolve(this.profilesDirectory, profileName),
-				isSortPlugins
-			}).then(() => {
-				profile.sort(isBackup, () => {
-					console.info(`[Info]`, `Profile [${profileName}] sorted!`)
-				})
 			})
-		})).then(() => {
-			if (typeof onFinish === 'function') {
-				onFinish()
-			}
-		})
+			return profile.sort({
+				isBackup,
+				onFinish: () => {
+					console.info(`[Info]`, `Profile [${profileName}] sorted!`)
+				}
+			})
 
+		}))
+
+		if (typeof onFinish === 'function') {
+			onFinish(this.profileNames)
+		} else {
+			console.info(`[Info]`, `All profiles sorted!`)
+		}
 	}
 }
 

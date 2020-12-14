@@ -1,4 +1,3 @@
-import fs from 'fs'
 import path from 'path'
 import ModManagerTwo from './ModManagerTwo'
 
@@ -33,8 +32,54 @@ export type InitParameter = {
 	 * 用于获得已启用的 mod 们 和  plugin 们
 	 */
 	profileDirectory: string
+
+	/**
+	 * 已按名称排序的且存在的全部 mods
+	 *
+	 * 即便不排序 mods, 也需要该数组检测 mods 的存在性.
+	 * 如果不传递, 则调用 ModManagerTwo.generateAllModsSorted(this.modDirectory) 获取.
+	 *
+	 * 排序多个 profiles 时, 推荐在 ModManagerTwo instance 里传递过来, 用于多 profiles 共享, 减少 IO 次数
+	 *
+	 * <necessity optional />
+	 */
 	allModsSorted?: Array<string>
+}
+
+export type SortParameter = {
+
+	/**
+	 * determine whether to backup files
+	 *
+	 * <necessity optional />
+	 */
+	isBackup?:boolean
+
+	/**
+	 * determine whether to sort mods by name
+	 *
+	 * <necessity optional />
+	 */
+	isSortModsByName?: boolean
+
+	/**
+	 * determine whether to sort plugins
+	 *
+	 * Sort plugins by those mods' priority.
+	 * A mod's priority determines is's plugins load order.
+	 *
+	 * <necessity optional />
+	 */
 	isSortPlugins?: boolean
+
+	/**
+	 * callback after finishing
+	 *
+	 * @param {string} profileDirectory
+	 *
+	 * <necessity optional />
+	 */
+	onFinish?: (profileDirectory: string) => void
 }
 
 /**
@@ -163,14 +208,14 @@ export default class ModManagerTwoProfile {
 	 */
 	enabledThirdPartyModSet: Set<string> = new Set<string>()
 
-
 	/**
-	 * 按文件名正序的第三方 mod 数组
-	 *
-	 * 排除 Skyrim 自带的 4 个 .esm.
+	 * 启用的 mods
+	 * 	从 modlist.txt 读取的, 且 mod directory 存在的
+	 * 	虽然 modlist.txt 里的 mods 排序是倒序的, 但初始化该属性时, 给搬正了
 	 * @type {string[]}
 	 */
-	enabledSortedThirdPartyMods: Array<string> = []
+	enabledThirdPartyModsOrdered: Array<string> = []
+
 
 	/**
 	 * 第三方 plugin 数组, 且跟据 enabledSortedThirdPartyMods 排序的
@@ -193,6 +238,15 @@ export default class ModManagerTwoProfile {
 	 * @type {boolean}
 	 */
 	isSortPlugins = true
+
+	/**
+	 * 是否按照 mods 名排序 mods
+	 *
+	 * 默认不排序
+	 *
+	 * @type {boolean}
+	 */
+	isSortModsByName = false
 
 	/**
 	 * If don't exist modlist.txt, should not backup it
@@ -228,8 +282,7 @@ export default class ModManagerTwoProfile {
 	async init ({
 		modDirectory,
 		profileDirectory,
-		allModsSorted,
-		isSortPlugins
+		allModsSorted
 	}: InitParameter): Promise<void> {
 		this.modDirectory = modDirectory
 		this.profileDirectory = profileDirectory
@@ -239,18 +292,6 @@ export default class ModManagerTwoProfile {
 			this.allModsSorted = allModsSorted
 		} else {
 			this.allModsSorted = await ModManagerTwo.generateAllModsSorted(this.modDirectory)
-		}
-
-		if (typeof isSortPlugins === 'boolean') {
-			this.isSortPlugins = isSortPlugins
-		}
-
-		if (this.isSortPlugins) {
-			await this.initModsRelativeProperty()
-			return this.initPluginsRelativeProperty()
-		} else {
-			console.info(`[Info]`, `Set options to not sort plugins!`)
-			return this.initModsRelativeProperty()
 		}
 	}
 
@@ -337,7 +378,7 @@ export default class ModManagerTwoProfile {
 		const modlistFilePath = path.resolve(this.profileDirectory, ModManagerTwoProfile.modlistFileName)
 		let modlistFileLines: Array<string> = [ModManagerTwoProfile.fileTip]
 
-		// 倒序遍历
+		// 倒序遍历全部 mods, modlist.txt 里的 mods 是倒序的
 		for (let i = this.allModsSorted.length - 1; i >= 0; i--) {
 			const modName = this.allModsSorted[i]
 			if (this.enabledThirdPartyModSet.has(modName)) {
@@ -363,29 +404,50 @@ export default class ModManagerTwoProfile {
 
 	}
 
+
 	/**
 	 * 排序 profile
 	 *
-	 * @param {boolean} isBackup 是否备份原文件
-	 * @param {(profileDirectory: string) => void} onFilish     完成时回调
+	 * @param {boolean | undefined} isBackup 是否备份原文件
+	 * @param {boolean | undefined} isSortModsByName 是否按照 mods 名排序 mods
+	 * @param {boolean | undefined} isSortPlugins 是否按照 mods 优先级排序 plugins
+	 * @param {((profileDirectory: string) => void) | undefined} onFinish
 	 * @return {Promise<void>}
 	 *
 	 * <dependencies>
 	 *    <method name="init" parameterQueue="[InitParameter]"/>
 	 * </dependencies>
 	 */
-	async sort (isBackup: boolean = true, onFilish: (profileDirectory: string) => void) {
+	async sort ({
+		isBackup = true,
+		isSortModsByName = false,
+		isSortPlugins = true,
+		onFinish
+	}: SortParameter) {
+
+		// 不管是否排序 mods, 都需要初始化 mods 相关的属性, 即运行 initModsRelativeProperty()
+		await this.initModsRelativeProperty()
+
+		if (isSortPlugins) {
+			console.info(`[Info]`, `Set options to sort plugins by mods' priorities!`)
+			await this.initPluginsRelativeProperty(isSortModsByName)
+		} else if (isSortModsByName){
+			console.info(`[Info]`, `Set options to sort mods by name!`)
+		}
+
 		let promiseArray: Array<Promise<void>> = []
-		promiseArray.push(this.sortModlist(isBackup))
-		if (this.isSortPlugins) {
+		if (isSortModsByName) {
+			promiseArray.push(this.sortModlist(isBackup))
+		}
+		if (isSortPlugins) {
 			promiseArray.push(this.sortPlugins(isBackup))
 			promiseArray.push(this.sortLoadorder(isBackup))
 		}
-		return Promise.all(promiseArray).then(() => {
-			if (typeof onFilish === 'function') {
-				onFilish(this.profileDirectory)
-			}
-		})
+		await Promise.all(promiseArray)
+
+		if (typeof onFinish === 'function') {
+			onFinish(this.profileDirectory)
+		}
 
 	}
 
@@ -394,6 +456,7 @@ export default class ModManagerTwoProfile {
 	 *
 	 * init() 里会调用此反方, 在调用之前先得到或执行依赖项
 	 *
+	 * @param {boolean | undefined} isSortsModsByName 是否排序 mods
 	 * @return {Promise<void>}
 	 *
 	 * <dependencies>
@@ -402,9 +465,18 @@ export default class ModManagerTwoProfile {
 	 *    </method>
 	 * </dependencies>
 	 */
-	private async initPluginsRelativeProperty () {
+	private async initPluginsRelativeProperty (isSortsModsByName: boolean = false) {
 		let pluginsOfEnableMods: Array<string> = []
-		for await (const modName of this.enabledSortedThirdPartyMods) {
+		let enableModsForLoop
+		// 如果排序 mods(按名称), 则对启用的 mods 按名称排序
+		if (isSortsModsByName) {
+			enableModsForLoop = this.enabledThirdPartyModsOrdered.sort((a, b) => a.localeCompare(b))
+		}
+		// 不排序 mods, 则根据 modlist.txt 的启用顺序排 plugins
+		else {
+			enableModsForLoop = this.enabledThirdPartyModsOrdered
+		}
+		for await (const modName of enableModsForLoop) {
 			const plugins = (await filterFiles({
 				dir: path.resolve(this.modDirectory, modName),
 				extnames: Skyrim.pluginExtnames
@@ -467,19 +539,19 @@ export default class ModManagerTwoProfile {
 			// 可能存在启用的第三方 mod 们
 			if (modsInModlistFile.length > ModManagerTwoProfile.fileTipLineCount) {
 				const allModsSortedSet = arrayToSet(this.allModsSorted)
-				for (let i = ModManagerTwoProfile.fileTipLineCount; i < modsInModlistFile.length; i++) {
-					const mod = modsInModlistFile[i]
-					const modName = mod.substring(1)
+				// modlist.txt 里的是 mod 倒序的, 这里倒序遍历, 得到就是正序的
+				// [lyne] for 倒序遍历, 初始值: i = array.length -1, 循环继续: i >= 最小值, 每次遍历: i--. 别粗心漏掉了, 3个步骤
+				for (let i = modsInModlistFile.length - 1; i >= ModManagerTwoProfile.fileTipLineCount; i--) {
+					const modInModlist = modsInModlistFile[i]
+					const modName = modInModlist.substring(1)
 					// [warning] modsInModlisFile 可能存在已经删除的但却启用的 mod, 所以其与 modDirectory 的 mod 列表可能不同.
 					// 如果 mod 启用, 且 存在于 mod directory
-					if (mod.startsWith('+') && allModsSortedSet.has(modName)) {
-						this.enabledSortedThirdPartyMods.push(modName)
+					if (modInModlist.startsWith('+') && allModsSortedSet.has(modName)) {
+						this.enabledThirdPartyModsOrdered.push(modName)
 						// 用于之后写 modlist.txt 时检索启用的
 						this.enabledThirdPartyModSet.add(modName)
 					}
 				}
-				// 等价于使用当前 locale, 按文件名排序
-				this.enabledSortedThirdPartyMods.sort((a, b) => a.localeCompare(b))
 			}
 		}
 

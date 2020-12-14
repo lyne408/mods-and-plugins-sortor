@@ -1,4 +1,4 @@
-import { ExecutionConfig } from './src/ModManagerTwo'
+import { ExecutionConfig, SortSelectedProfileParameter, SortAllProfilesParameter } from './src/ModManagerTwo'
 
 export default class ModManagerTwo {
   init (installationDirectory: string): Promise <void>

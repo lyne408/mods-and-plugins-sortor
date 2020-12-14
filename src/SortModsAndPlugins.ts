@@ -8,6 +8,7 @@ const config: ExecutionConfig = {
 	isSortAllProfiles: false,
 	isOnlySortSelectedProfile: true,
 	isBackup: true,
+	isSortModsByName: false,
 	isSortPlugins: true
 }
 ModManagerTwo.sortProfilesByConfig(config)
