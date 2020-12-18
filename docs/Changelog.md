@@ -20,7 +20,7 @@
 - Add changlog documents.
 - Add section  *INDEPENDENT CONCEPTS*  to explain why sort mods by name.
 
-**Fixs**
+**Fixes**
 
 - Support uppercase plugin's extension name, such as `.ESM`, `.ESP`.
 
@@ -30,7 +30,7 @@
 
 2020-12-14
 
-**Documents Fixs**
+**Documents Fixes**
 
 - Fix user guide errors in README.md.
 - Edit user guide for more user-friendly.
@@ -39,7 +39,7 @@
 
 2020-12-14
 
-**Documents Fixs**
+**Documents Fixes**
 
 - Fix user guide errors in README.md.
 
