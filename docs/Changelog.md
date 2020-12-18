@@ -4,7 +4,7 @@
 
 ### 1.1.0
 
-2020-12-15
+2020-12-17
 
 **Features**
 
@@ -15,9 +15,14 @@
 
 **Documents**
 
+- Describe which verion the README.md(User Guide) meets.
 - Describe new featues.
 - Add changlog documents.
 - Add section  *INDEPENDENT CONCEPTS*  to explain why sort mods by name.
+
+**Fixs**
+
+- Support uppercase plugin's extension name, such as `.ESM`, `.ESP`.
 
 ## 1.0.x
 

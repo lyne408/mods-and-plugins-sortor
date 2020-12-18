@@ -3,7 +3,7 @@ import fs from 'fs'
 const fsPromises = fs.promises
 import { isNonEmptyArray } from './ArrayUtil'
 import { isExist } from './FSUtil'
-import { replaceStringsByMap } from './StringUtil'
+import { replaceStringsByMap, isNonEmptyString, hasSubstrings, containsOf } from './StringUtil'
 
 /**
  * 获取不包含扩展名的文件名
@@ -34,7 +34,7 @@ export function getFileNameWithoutExtension (fileUrlOrName: string): string {
  *
  * <recommendName />
  */
-export let getFileName = getFileNameWithoutExtension
+export const getFileName = getFileNameWithoutExtension
 /**
  * 获取包含扩展名的文件名
  * @param fileUrl 文件路径
@@ -47,7 +47,7 @@ export function getFileNameWithExtension (fileUrl: string): string {
  * <recommendName />
  * @type {(fileUrl: string) => string}
  */
-export let getFullFileName = getFileNameWithExtension
+export const getFullFileName = getFileNameWithExtension
 
 /**
  * 获取文件或文件夹所在的文件夹名
@@ -64,7 +64,7 @@ export function getParentFolderName (fsPath: string): string {
  *
  * @type {(fsPath: string) => string}
  */
-export let getParentDirectoryName = getParentFolderName
+export const getParentDirectoryName = getParentFolderName
 
 /**
  * 文件/目录路径的 parent 都是目录
@@ -72,7 +72,7 @@ export let getParentDirectoryName = getParentFolderName
  *
  * <recommendName />
  */
-export let getParentName = getParentFolderName
+export const getParentName = getParentFolderName
 
 /**
  *
@@ -89,28 +89,52 @@ export function getFolderName (dirname: string): string {
  * <recommendName />
  * @type {(dirname: string) => string}
  */
-export let getDirectoryName = getFolderName
+export const getDirectoryName = getFolderName
 /**
  * export path.extname
  * [Lyne] 可以这样直接重导出, 但没有任何封装的, 也不是为了可读性和维护性的, 确实没必要
  */
 
-// export let extname = path.extname
+export const extname = path.extname
 
 /**
  *
- * 找到一个就返回 true
+ * @param {string} fullFilename
+ * @param {Array<string>} inclusions
+ * @param {boolean} isCaseSensitive
+ * @return {boolean}
  */
-export function filenameContainsOf (fullFilename: string, inclusions: Array<string>): boolean {
-	if (isNonEmptyArray(inclusions)) {
-		let filename = getFileNameWithExtension(fullFilename)
-		for (let i = 0; i < inclusions.length; i++) {
-			if (filename.includes(inclusions[i])) {
-				return true
-			}
-		}
+export function filenameHas (fullFilename: string, inclusions: Array<string>, isCaseSensitive: boolean = false): boolean {
+	if (!isNonEmptyString(fullFilename) || !isNonEmptyArray(inclusions)) {
+		return false
 	}
-	return false
+	let fileName = getFileName(fullFilename)
+
+	return hasSubstrings({
+		string: fileName,
+		inclusions,
+		isCaseSensitive
+	})
+}
+
+/**
+ *
+ * @param {string} fullFilename
+ * @param {Array<string>} inclusions
+ * @param {boolean} isCaseSensitive 默认 false, 因 Windows 路径忽略大小写
+ * @return {boolean}
+ */
+export function fileNameContainsOf (fullFilename: string, inclusions: Array<string>, isCaseSensitive: boolean = false): boolean {
+	if (!isNonEmptyString(fullFilename) || !isNonEmptyArray(inclusions)) {
+		return false
+	}
+	let fileName = getFileName(fullFilename)
+
+	return containsOf({
+		string: fileName,
+		inclusions,
+		isCaseSensitive
+	})
 }
 
 /**
@@ -121,16 +145,52 @@ export function filenameContainsOf (fullFilename: string, inclusions: Array<stri
  *     因为 JavaScript 里判断字符串包含子串用 String.prototype.includes()
  * </recommendName>
  */
-export let filenameIncludesOf = filenameContainsOf
+export const fileNameIncludesOf = fileNameContainsOf
+
+/**
+ *
+ * @param {string} fullFilename
+ * @param {Array<string>} inclusions
+ * @param {boolean} isCaseSensitive
+ * @return {boolean}
+ */
+export function fileNameHasSubstrings (fullFilename: string, inclusions: Array<string>, isCaseSensitive: boolean = false): boolean {
+	if (!isNonEmptyString(fullFilename) || !isNonEmptyArray(inclusions)) {
+		return false
+	}
+	let fileName = getFileName(fullFilename)
+
+	return hasSubstrings({
+		string: fileName,
+		inclusions,
+		isCaseSensitive
+	})
+}
+
 /**
  *
  * 符合一个就返回 true
+ * @param {string} fullFilename
+ * @param {Array<string>} extnames
+ * @param {boolean} isCaseSensitive 默认 false, 因 Windows 路径忽略大小写
+ * @return {boolean}
  */
-export function extnameOf (fullFilename: string, extnames: Array<string>): boolean {
-	if (isNonEmptyArray(extnames)) {
-		let extname = path.extname(fullFilename)
-		for (let i = 0; i < extnames.length; i++) {
-			if (extname === extnames[i]) {
+export function extnameOf (fullFilename: string, extnames: Array<string>, isCaseSensitive: boolean = false): boolean {
+	if (!isNonEmptyString(fullFilename) || !isNonEmptyArray(extnames)) {
+		return false
+	}
+	let fileExtname = path.extname(fullFilename)
+	if (isCaseSensitive) {
+		for (let extname of extnames) {
+			if (fileExtname === extname) {
+				return true
+			}
+		}
+	} else {
+		fileExtname = fileExtname.toLowerCase()
+		for (let extname of extnames) {
+			extname = extname.toLowerCase()
+			if (fileExtname === extname) {
 				return true
 			}
 		}
@@ -181,22 +241,5 @@ export function safenFileName (fileName: string): string {
 }
 
 
-/**
- * 替换扩展名
- * @param {string} fullFleName
- * @param {string} newExtname
- * @return {string}
- */
-export function replaceExtname (fullFleName: string, newExtname: string): string {
-	return getFileName(fullFleName) + newExtname
-}
 
-/**
- *
- * @param {string} fullFleName
- * @return {string}
- */
-export function replaceExtnameToWebp (fullFleName: string): string {
-	return replaceExtname(fullFleName, '.webp')
-}
  

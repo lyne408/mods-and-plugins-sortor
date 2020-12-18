@@ -1,4 +1,4 @@
-import ModManagerTwo, {sortProfilesByConfig} from './ModManagerTwo'
+import ModManagerTwo from './ModManagerTwo'
 
 export default ModManagerTwo
 

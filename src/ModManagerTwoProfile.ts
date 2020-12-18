@@ -428,11 +428,12 @@ export default class ModManagerTwoProfile {
 		// 不管是否排序 mods, 都需要初始化 mods 相关的属性, 即运行 initModsRelativeProperty()
 		await this.initModsRelativeProperty()
 
+		if (isSortModsByName){
+			console.info(`[Info]`, `Sort mods by name!`)
+		}
 		if (isSortPlugins) {
-			console.info(`[Info]`, `Set options to sort plugins by mods' priorities!`)
+			console.info(`[Info]`, `Sort plugins by mods' priorities!`)
 			await this.initPluginsRelativeProperty(isSortModsByName)
-		} else if (isSortModsByName){
-			console.info(`[Info]`, `Set options to sort mods by name!`)
 		}
 
 		let promiseArray: Array<Promise<void>> = []
@@ -454,8 +455,6 @@ export default class ModManagerTwoProfile {
 	/**
 	 * 初始化 plugin 相关属性
 	 *
-	 * init() 里会调用此反方, 在调用之前先得到或执行依赖项
-	 *
 	 * @param {boolean | undefined} isSortsModsByName 是否排序 mods
 	 * @return {Promise<void>}
 	 *
@@ -467,16 +466,11 @@ export default class ModManagerTwoProfile {
 	 */
 	private async initPluginsRelativeProperty (isSortsModsByName: boolean = false) {
 		let pluginsOfEnableMods: Array<string> = []
-		let enableModsForLoop
 		// 如果排序 mods(按名称), 则对启用的 mods 按名称排序
 		if (isSortsModsByName) {
-			enableModsForLoop = this.enabledThirdPartyModsOrdered.sort((a, b) => a.localeCompare(b))
+			this.enabledThirdPartyModsOrdered.sort((a, b) => a.localeCompare(b))
 		}
-		// 不排序 mods, 则根据 modlist.txt 的启用顺序排 plugins
-		else {
-			enableModsForLoop = this.enabledThirdPartyModsOrdered
-		}
-		for await (const modName of enableModsForLoop) {
+		for await (const modName of this.enabledThirdPartyModsOrdered) {
 			const plugins = (await filterFiles({
 				dir: path.resolve(this.modDirectory, modName),
 				extnames: Skyrim.pluginExtnames
@@ -495,14 +489,14 @@ export default class ModManagerTwoProfile {
 		}
 		// 存在 plugins.txt
 		else {
-			const plugins = await readlineToArray(pluginsFilePath)
+			const pluginLines = await readlineToArray(pluginsFilePath)
 			// 若有第三方 plugin
-			if (plugins.length > ModManagerTwoProfile.fileTipLineCount) {
-				for (let i = ModManagerTwoProfile.fileTipLineCount; i < plugins.length; i++) {
-					const plugin = plugins[i]
-					if (plugin.startsWith('*')) {
+			if (pluginLines.length > ModManagerTwoProfile.fileTipLineCount) {
+				for (let i = ModManagerTwoProfile.fileTipLineCount; i < pluginLines.length; i++) {
+					const pluginLine = pluginLines[i]
+					if (pluginLine.startsWith('*')) {
 						// 启用的 plugins 最开头是 "*", 应去掉 "*"
-						const pluginName = plugin.substring(1)
+						const pluginName = pluginLine.substring(1)
 						this.enabledThirdPartyPluginsSet.add(pluginName)
 					}
 				}

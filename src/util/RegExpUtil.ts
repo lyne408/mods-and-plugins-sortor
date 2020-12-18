@@ -61,6 +61,8 @@ export function escapeRegExp(string: string): string {
 /**
  * 获取中间部分
  *
+ * TODO tag
+ *
  * @param {string} string
  * @param {string} left
  * @param {string} right

@@ -1,3 +1,6 @@
+/***
+ * Note: 许多字符串功能函数都要设置 大小写敏感与否 的参数
+ */
 import { isNonEmptyArray } from './ArrayUtil'
 
 const ACode = 'A'.charCodeAt(0)
@@ -25,6 +28,7 @@ export function insertString (sourceStr: string, startIndex: number, insertStr: 
  * ### 实现思路
  *  先把所有单词转成小写, 然后第一个字母转成大写
  *  再把第一个单词首字母转为小写
+ *  TODO 大小写不敏感
  */
 export function wordsToLowerCamel (str: string): string {
 	let words = str.split(' ')
@@ -42,14 +46,9 @@ export function wordsToLowerCamel (str: string): string {
 }
 
 /**
- *
- * @param sourceStr
- * @param startIndex
- * @param insertStr
- */
-/**
  * 从一个字符串里删除某个字符串
  *   delete 是关键字, 只好命名为 deleteString
+ *    TODO 大小写不敏感
  * @param sourceStr
  * @param deleteStr
  */
@@ -71,6 +70,7 @@ export function deleteString (sourceStr: string, deleteStr: string): string {
 
 /**
  * 删除多个字符串
+ *  TODO 大小写不敏感
  * @param sourceStr
  * @param deleteStringArray
  */
@@ -81,10 +81,10 @@ export function deleteStrings (sourceStr: string, deleteStringArray: Array<strin
 	return sourceStr
 }
 
-
 /**
  * 替换多个字符串为某一个字符串
  *
+ *  TODO 大小写不敏感
  * @param {string} sourceStr
  * @param {Array<string>} replaceStringArray
  * @param {string} targetString
@@ -98,10 +98,12 @@ export function replaceStrings (sourceStr: string, replaceStringArray: Array<str
 }
 
 /**
+ * 如果要支持 isCaseSensitive: boolean 参数, 则应使用正则表达式
  *
  * @param {string} sourceString
  * @param {Map<string, string>} map Map<oldStrKey, newStrValue>
  * @return {string}
+ *  TODO 大小写不敏感
  */
 export function replaceStringsByMap (sourceString: string, map: Map<string, string>): string {
 	map.forEach((newStrValue, oldStrKey) => {
@@ -126,7 +128,7 @@ export function replaceStringsByMap (sourceString: string, map: Map<string, stri
 
 		/*** 采用 split(), join() 方案 ***/
 		/* 这样也不用每次创建正则对象了 */
-		// 没遍历一次就替换一次
+		// 每遍历一次就替换一次
 		let noOldStrArray: Array<string> = sourceString.split(oldStrKey)
 		sourceString = noOldStrArray.join(newStrValue)
 
@@ -134,8 +136,6 @@ export function replaceStringsByMap (sourceString: string, map: Map<string, stri
 
 	return sourceString
 }
-
-
 
 /**
  * 仅保留字母和空格
@@ -150,7 +150,7 @@ export function reserveLettersAndSpace (str: string): string {
 			delete charArray[i]
 		}
 	}
-	
+
 	return charArray.join('')
 }
 
@@ -167,22 +167,162 @@ export function wordsToHyphenLowercase (str: string): string {
 	return words.join('-')
 }
 
-/**
- *
- * @param {string} str
- * @param {Array<string>} inclusions
- * @return {boolean}
- */
-export function isContainsOf (str: string, inclusions: Array<string>): boolean {
-	let isInclusions = isNonEmptyArray(inclusions)
-	let isQueryd = false
-	if (isInclusions) {
-		for (let i = 0; i < inclusions.length; i++) {
-			if (str.includes(inclusions[i])) {
-				isQueryd = true
+
+
+/*
+enum Equal {
+	equal
+}
+
+type CheckStringMatchModes = Equal | OneOfOrAll
+
+matchMode = Equal.equal
+matchMode = OneOfOrAll.oneOf
+
+matchMode = CheckStringMatchModes.oneOf 报错, CheckStringMatchModes 是一个类型
+
+*/
+
+enum CheckStringMatchModes {
+	containsOf,
+	equalsOf,
+	hasSubstrings
+}
+
+type CheckStringParameter = {
+	string: string
+	inclusions: Array<string>
+	matchMode?: CheckStringMatchModes
+	isCaseSensitive?: boolean
+	// 性能选项
+	isCheckNonEmptyArguments?: boolean
+}
+
+
+
+function checkString ({
+	string,
+	inclusions,
+	matchMode = CheckStringMatchModes.containsOf,
+	isCaseSensitive = true,
+	isCheckNonEmptyArguments = true
+}: CheckStringParameter): boolean {
+	if (isCheckNonEmptyArguments) {
+		if (!isNonEmptyString(string) || !isNonEmptyArray(inclusions)) return false
+	}
+	let counter = 0
+	if (matchMode === CheckStringMatchModes.hasSubstrings) {
+		// [lyne] 代码虽长, 但性能高. 分两次遍历, 而非每次遍历判断是否忽略大小写
+		if (!isCaseSensitive) {
+			string = string.toLowerCase()
+			for (const inclusion of inclusions) {
+				if (string.includes(inclusion.toLowerCase())) {
+					counter ++
+				}
+			}
+		} else {
+			for (const inclusion of inclusions) {
+				if (string.includes(inclusion)) {
+					counter ++
+				}
+			}
+		}
+		return counter === inclusions.length
+	} else if (matchMode === CheckStringMatchModes.containsOf) {
+		if (isCaseSensitive) {
+			for (const inclusion of inclusions) {
+				if (string.includes(inclusion)) {
+					return true
+				}
+			}
+		} else {
+			string = string.toLowerCase()
+			for (const inclusion of inclusions) {
+				if (string.includes(inclusion.toLowerCase())) {
+					// return 就不用 break.
+					// [lyne] **只判断一层**, 直接返回 return value. 无需悲观锁思想. 无需先设置变量, 中途改变变量, 最后再返回. 提高性能
+					return true
+				}
+			}
+		}
+	} else if (matchMode === CheckStringMatchModes.equalsOf) {
+		if (isCaseSensitive) {
+			for (const inclusion of inclusions) {
+				if (string === inclusion) {
+					return true
+				}
+			}
+		} else {
+			string = string.toLowerCase()
+			for (const inclusion of inclusions) {
+				if (string === inclusion.toLowerCase()) {
+					return true
+				}
 			}
 		}
 	}
 	return false
 }
 
+export type ContainsOfParameter = Omit<CheckStringParameter, 'matchMode'>
+
+/**
+ *
+ * @param {ContainsOfParameter} argObj
+ * @return {boolean}
+ */
+export function containsOf (argObj: ContainsOfParameter): boolean {
+	return checkString(Object.assign(argObj, {matchMode: CheckStringMatchModes.containsOf}))
+}
+
+export type HasSubstringsParameter = Omit<CheckStringParameter, 'matchMode'>
+
+
+/**
+ * 比如用 ['Dark Kight', 'BHUNP'] 筛选出 "Dark Kight CBBE 3BA & BHUNP"
+ *
+ * @param {HasSubstringsParameter} argObj
+ * @return {boolean}
+ */
+export function hasSubstrings (argObj: HasSubstringsParameter): boolean {
+	return checkString(Object.assign(argObj, {matchMode: CheckStringMatchModes.hasSubstrings}))
+}
+
+
+
+export type EqualsOfParameter = Omit<CheckStringParameter, 'matchMode'>
+
+/**
+ * 文件名等于其中一个
+ * @param {EqualsOfParameter} argObj
+ * @return {boolean}
+ */
+export function equalsOf (argObj: EqualsOfParameter): boolean {
+	return checkString(Object.assign(argObj, {matchMode: CheckStringMatchModes.equalsOf}))
+}
+/**
+ * determine any variable is empty string or not
+ * @param any
+ * @return {boolean}
+ */
+export function isNonEmptyString (any: any): boolean {
+	return typeof any === 'string' && any.length > 0
+}
+
+/**
+ * 检查相等性
+ *
+ * @param {string} str1
+ * @param {string} str2
+ * @param {boolean} isCaseSensitive
+ * @return {boolean}
+ */
+export function checEquality (str1: string, str2: string, isCaseSensitive: boolean = true): boolean {
+	if (isCaseSensitive) {
+		return str1 === str2
+	} else {
+		return str1.toLowerCase() === str2.toLowerCase()
+	}
+}
+
+export const equals = checEquality

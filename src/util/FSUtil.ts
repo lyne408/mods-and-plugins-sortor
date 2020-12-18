@@ -10,13 +10,13 @@ import { isNonEmptyArray, joinNoEmpty } from './ArrayUtil'
 import { nowForFilename } from './DateUtil'
 import {
 	extnameOf,
-	filenameContainsOf,
+	fileNameContainsOf,
 	getFullFileName,
 	getFileName,
 	getFolderName,
-    safenPath,
+	safenPath, fileNameHasSubstrings,
 } from './PathUtil'
-import { isContainsOf, replaceStringsByMap } from './StringUtil'
+import { containsOf, replaceStringsByMap, isNonEmptyString, equalsOf, hasSubstrings } from './StringUtil'
 
 const fsPromises = fs.promises
 
@@ -490,7 +490,24 @@ export async function renameForBackup (filePath: string): Promise<string> {
 
 
 
+/**
+ * 替换扩展名
+ * @param {string} fullFleName
+ * @param {string} newExtname
+ * @return {string}
+ */
+export function replaceExtname (fullFleName: string, newExtname: string): string {
+	return getFileName(fullFleName) + newExtname
+}
 
+/**
+ *
+ * @param {string} fullFleName
+ * @return {string}
+ */
+export function replaceExtnameToWebp (fullFleName: string): string {
+	return replaceExtname(fullFleName, '.webp')
+}
 
 
 /**
@@ -512,8 +529,21 @@ TypeScript 里, class 内部是不能导出类型的, namespace 里可以
 如果单独定义函数参数类型, 函数返回值类型, 只能放在 class 代码外部, 对眼睛不友好.
 */
 
+// [lyne] TypeScript 里可以使用 enum 的值, JavaScript 里似乎用不了 TypeScript 的 enum 值
+
+
+
+
 /**
  * <functionalParameterType function="filterFilesAndDirectories" />
+ *
+ * <requiredOptionalProperties matchMode="anyOf">
+ * 	  <property name="isGetFiles" value="true" />
+ * 	  <property name="isGetDirectories" value="true" />
+ * </requiredOptionalProperties>
+ *
+ * TODO 参数类型改了, 但函数功能没实现
+ *
  */
 export type FilterFilesAndDirectoriesParameter = {
 
@@ -541,16 +571,37 @@ export type FilterFilesAndDirectoriesParameter = {
 	isGetDirectories?: boolean
 
 	/**
+	 * 文件夹名字, 文件名
+	 * 即完全匹配
+	 *
+	 * <necessity optional />
+	 */
+	name?: string
+
+	/**
 	 * 文件名/文件夹名 含有 inclusions 中任意一个则认为符合筛选条件
 	 *
 	 * <necessity optional />
 	 *
-	 * <propertyDependencies mode="anyOf">
-	 *  <propertyDependency name="isGetFiles" value="true" />
-	 *  <propertyDependency name="isGetDirectories" value="true" />
+	 * <propertyDependencies>
+	 * 		<property name="name" valueMark="nonStringOrEmptyString" />
 	 * </propertyDependencies>
 	 */
 	inclusions?: Array<string>
+
+	/**
+	 * 匹配模式
+	 *
+	 * <necessity optional />
+	 *
+	 * <propertyDependencies>
+	 * 		<property name="inclusions" valueMark="elementsMoreThanOne" />
+	 * </propertyDependencies>
+	 *
+	 * <value value="OneOfOrAll.all">文件名或文件夹名, 全部包含 inclusions 的元素</value>
+	 * <value value="OneOfOrAll.oneOf">文件名或文件夹名, 有 inclusions 其中一个元素即可</value>
+	 */
+	matchMode?: OneOfOrAll
 
 	/**
 	 * 筛选文件扩展名的数组
@@ -563,6 +614,12 @@ export type FilterFilesAndDirectoriesParameter = {
 	 */
 	extnames?: Array<string>
 
+
+	/**
+	 * 大小写敏感性
+	 */
+	isCaseSensitive?: boolean
+
 	/**
 	 * whether to get absolute path
 	 *
@@ -571,12 +628,6 @@ export type FilterFilesAndDirectoriesParameter = {
 	 * <if value="true">
 	 * 	these returned files or directories or both is the absolute path not these names
 	 * </if>
-	 *
-	 * <propertyDependencies mode="anyOf">
-	 *  <condition value="true" />
-	 *  <propertyDependency name="isGetFiles" value="true" />
-	 *  <propertyDependency name="isGetDirectories" value="true" />
-	 * </propertyDependencies>
 	 *
 	 * <design>
 	 * 	absolute path is better for CLI program arguments
@@ -620,8 +671,14 @@ export type FilterFilesAndDirectoriesReturnValue = {
  * @param {string} dir
  * @param {boolean | undefined} isGetFiles
  * @param {boolean | undefined} isGetDirectories
+ * @param name
+ * @param name
+ * @param matchMode
  * @param {Array<string> | undefined} inclusions
+ * @param isCaseSensitive
+ * @param matchMode
  * @param {Array<string> | undefined} extnames
+ * @param isCaseSensitive
  * @param {boolean | undefined} isGetAbsolutePath
  * @return {Promise<FilterFilesAndDirectoriesReturnValue>}
  */
@@ -629,8 +686,11 @@ export async function filterFilesAndDirectories ({
 	dir,
 	isGetFiles = true,
 	isGetDirectories = true,
+	name,
 	inclusions,
+	matchMode,
 	extnames,
+	isCaseSensitive = false,
 	isGetAbsolutePath = false
 }: FilterFilesAndDirectoriesParameter): Promise<FilterFilesAndDirectoriesReturnValue> {
 
@@ -650,8 +710,13 @@ export async function filterFilesAndDirectories ({
 
 	let folderArray: typeof files = []
 
-	let hasInclusionsArg = isNonEmptyArray(inclusions)
-	let hasExtnamesArg = isNonEmptyArray(extnames)
+	const hasNameArg = isNonEmptyString(name)
+	const hasInclusionsArg = isNonEmptyArray(inclusions)
+	const hasExtnamesArg = isNonEmptyArray(extnames)
+
+	// 仅当 inclusions 元素个数大于 2 时 才有效
+	// @ts-ignore
+	const isInclusionsElementsMoreThanOne = hasInclusionsArg && inclusions.length >= 2
 
 	async function getAllFiles () {
 		for await (const file of files) {
@@ -663,27 +728,84 @@ export async function filterFilesAndDirectories ({
 	}
 
 	async function filterFileNames () {
-		fileArray.forEach((fullName) => {
-			if (Array.isArray(inclusions) && filenameContainsOf(fullName, inclusions)) {
-				returnValue.files.push(fullName)
+
+			if (hasNameArg) {
+				for await (const fullName of fileArray) {
+					if(equalsOf({
+						// @ts-ignore
+						string: name,
+						// @ts-ignore
+						inclusions,
+						isCaseSensitive
+					})) {
+						returnValue.files.push(fullName)
+					}
+				}
+			} else {
+				if (isInclusionsElementsMoreThanOne && matchMode === OneOfOrAll.all) {
+						for await (const fullName of fileArray) {
+							// @ts-ignore
+							if (fileNameHasSubstrings(fullName, inclusions, isCaseSensitive)) {
+								returnValue.files.push(fullName)
+							}
+						}
+				} else {
+					for await (const fullName of fileArray) {
+						// @ts-ignore
+						if (fileNameContainsOf(fullName, inclusions, isCaseSensitive)) {
+							returnValue.files.push(fullName)
+						}
+					}
+				}
+
 			}
-		})
+
+
+
 	}
 
-	async function filterExtames () {
-		fileArray.forEach((fullName) => {
-			if (Array.isArray(extnames) && extnameOf(fullName, extnames)) {
+	async function filterExtnames () {
+		for await (const fullName of fileArray) {
+			// @ts-ignore
+			if (extnameOf(fullName, extnames, isCaseSensitive)) {
 				returnValue.files.push(fullName)
 			}
-		})
+		}
 	}
 
-	async function filterFileNamesAndExtames () {
-		fileArray.forEach((fullName) => {
-			if (Array.isArray(inclusions) && Array.isArray(extnames) && filenameContainsOf(fullName, inclusions) && extnameOf(fullName, extnames)) {
-				returnValue.files.push(fullName)
+	async function filterFileNamesAndExtnames () {
+		if (hasNameArg) {
+			for await (const fullName of fileArray) {
+				if(equalsOf({
+					// @ts-ignore
+					string: name,
+					// @ts-ignore
+					inclusions,
+					isCaseSensitive
+				}) &&
+				// @ts-ignore
+				extnameOf(fullName, extnames, isCaseSensitive)
+				){
+					returnValue.files.push(fullName)
+				}
 			}
-		})
+		} else {
+			if (isInclusionsElementsMoreThanOne && matchMode === OneOfOrAll.all) {
+				for await (const fullName of fileArray) {
+					// @ts-ignore
+					if (fileNameHasSubstrings(fullName, inclusions, isCaseSensitive)) {
+						returnValue.files.push(fullName)
+					}
+				}
+			} else {
+				for await (const fullName of fileArray) {
+					// @ts-ignore
+					if (fileNameContainsOf(fullName, inclusions, isCaseSensitive) && extnameOf(fullName, extnames, isCaseSensitive)) {
+						returnValue.files.push(fullName)
+					}
+				}
+			}
+		}
 	}
 
 	async function getAllDirectories () {
@@ -696,11 +818,35 @@ export async function filterFilesAndDirectories ({
 	}
 
 	async function filterDirectoryNames () {
-		folderArray.forEach((dirName) => {
-			if (Array.isArray(inclusions) && isContainsOf(dirName, inclusions)) {
-				returnValue.directories.push(dirName)
+		if (hasNameArg) {
+			for await (const dirName of folderArray) {
+				if(equalsOf({
+					// @ts-ignore
+					string: name,
+					// @ts-ignore
+					inclusions,
+					isCaseSensitive
+				})) {
+					returnValue.files.push(dirName)
+				}
 			}
-		})
+		} else {
+			if (isInclusionsElementsMoreThanOne && matchMode === OneOfOrAll.all) {
+				for await (const dirName of folderArray) {
+					// @ts-ignore
+					if (hasSubstrings(fullName, inclusions, isCaseSensitive)) {
+						returnValue.files.push(dirName)
+					}
+				}
+			} else {
+				for await (const dirName of folderArray) {
+					// @ts-ignore
+					if (containsOf({string: dirName, inclusions, isCaseSensitive})) {
+						returnValue.files.push(dirName)
+					}
+				}
+			}
+		}
 	}
 
 	// 1. 仅获取文件
@@ -717,11 +863,11 @@ export async function filterFilesAndDirectories ({
 		}
 		// 仅有扩展名筛选
 		else if (!hasInclusionsArg && hasExtnamesArg) {
-			await filterExtames()
+			await filterExtnames()
 		}
 		// 筛选扩展名和文件名
 		else if (hasInclusionsArg && hasExtnamesArg) {
-			await filterFileNamesAndExtames()
+			await filterFileNamesAndExtnames()
 		}
 		// 无筛选
 		else {
@@ -767,12 +913,12 @@ export async function filterFilesAndDirectories ({
 		}
 		// 仅筛选文件的扩展名
 		else if (!hasInclusionsArg && hasExtnamesArg) {
-			await filterExtames()
+			await filterExtnames()
 			returnValue.directories = folderArray
 		}
 		// 筛选文件名和扩展名, 文件夹名,
 		else if (hasInclusionsArg && hasExtnamesArg) {
-			await filterFileNamesAndExtames()
+			await filterFileNamesAndExtnames()
 			await filterDirectoryNames()
 		}
 		// 不筛选

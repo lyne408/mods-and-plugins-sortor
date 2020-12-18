@@ -2,8 +2,8 @@ import { ExecutionConfig, SortSelectedProfileParameter, SortAllProfilesParameter
 
 export default class ModManagerTwo {
   init (installationDirectory: string): Promise <void>
-  sortSelectedProfile (isBackup: boolean, isSortPlugins: boolean, onFinish: () => void): Promise <void>
-  sortAllProfiles (isBackup: boolean, isSortPlugins: boolean, onFinish: () => void): Promise <void>
+  sortSelectedProfile (argObj: SortSelectedProfileParameter): Promise <void>
+  sortAllProfiles (argObj: SortAllProfilesParameter): Promise <void>
   static sortProfilesByConfig (executionConfig: ExecutionConfig):Promise <void>
 }
 

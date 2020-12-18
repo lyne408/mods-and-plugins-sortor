@@ -35,6 +35,7 @@ export function toTwoDimensional (arrayOneDimensional: Array<any>, capacity: num
 	let arrayTwoDimensional: Array<Array<any>> = []
 	let tempArr: Array<any> = []
 
+	// [lyne] 什么时候要用 for 循环, 而不是 for ... of? 1. 写. 2. 计数时, 需要索引时
 	for (let i = 0; i < arrayOneDimensional.length; i++) {
 		tempArr.push(arrayOneDimensional[i])
 		// 设 capacity = 8, 没到 8 个就 push 一次, 并清空 tempArr,  少于 8 个时会在遍历结束后 push
@@ -167,10 +168,24 @@ export function removeStringArrayDuplication (array: Array<string>, reservation:
 	return arrayReturned
 }
 
-export function isNonEmptyArray (array: any): boolean {
-	return Array.isArray(array) && array.length > 0
+/**
+ * 推荐返回值命名为 hasElements
+ * @param any
+ * @return {boolean}
+ */
+export function isNonEmptyArray (any: any): boolean {
+	return Array.isArray(any) && any.length > 0
 }
 
+export function isArray (any: any): boolean {
+	return Array.isArray(any)
+}
+
+/**
+ * 为了 API
+ * @param {Set<T>} set
+ * @return {Array<T>}
+ */
 export function setToArray<T> (set: Set<T>): Array<T> {
 	return Array.from(set)
 }

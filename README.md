@@ -2,31 +2,16 @@
 
 <!-- toc -->
 
-- [mods-and-plugins-sortor](#mods-and-plugins-sortor)
-  * [What's this project?](#whats-this-project)
-    + [Sort the plugins](#sort-the-plugins)
-    + [Sort the mods](#sort-the-mods)
-    + [Is this meant to replace LOOT?](#is-this-meant-to-replace-loot)
-  * [Requirement](#requirement)
-  * [Features](#features)
-    + [Sort plugins](#sort-plugins)
-    + [Sort mods](#sort-mods)
-      - [Why add this feature?](#why-add-this-feature)
-      - [Category Marks and Order Marks](#category-marks-and-order-marks)
-      - [The Ways to Manage Resources](#the-ways-to-manage-resources)
-    + [Backup before sorting](#backup-before-sorting)
-  * [Usage](#usage)
-  * [Configuration](#configuration)
-  * [Changelog](#changelog)
-
-<!-- tocstop -->
-
 # mods-and-plugins-sortor
 
 "mods-and-plugins-sortor" is a synonym for "Mods and Plugins Sortor for Mod Organizer 2".
 
 
 ![cover](./docs/assets/cover.jpg)
+
+## This README.md is for 1.1.0
+
+Note: This README.md(User Guide) is written for **version 1.1.0**.
 
 ## What's this project?
 
@@ -299,7 +284,7 @@ isBackup: false,
 
 
 
-If you want to sort all profiles, set `isSortAllProfiles` to `true`,  then you get the line like this, then `isOnlySortSelectedProfile` will be ignored:
+If you want to sort all profiles, set `isSortAllProfiles` to `true`,  then you get the line like this, and `isOnlySortSelectedProfile` will be ignored:
 
 ```JavaScript
 isSortAllProfiles: true,
@@ -320,3 +305,21 @@ I write changelog in a separate document.
 See `docs/Changelog.md`.
 
 [Changelog](./docs/Changelog.md)
+
+## Plan
+
+### GUI Support
+
+I finally found that when you published some tools for every one to use, you **must consider**:
+
+- all the people **need**
+- **easy to use**
+
+
+
+For example, I personally sort mods and plugins by the name priority of those mods, it's base on *INDEPENDENT CONCEPTS*. So in `1.0.0`, force to sort mods. 
+
+But for most users, they did not sort mods by name, they dragged mods in mod list controls of Mod Organizer 2 to control one mod's priority. So in `1.1.0`, sort mods by name is optional, and disabled by default.
+
+
+

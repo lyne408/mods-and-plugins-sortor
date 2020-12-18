@@ -20,3 +20,10 @@ export function arrayToSet<T> (array: Array<T>): Set<T> {
 	return new Set<T>(array)
 }
 
+export function isSet (any: any): boolean {
+	return any instanceof Set
+}
+
+export function isNonEmptySet (any: any): boolean {
+	return any instanceof Set && any.size > 0
+}
