@@ -2,6 +2,28 @@
 
 <!-- toc -->
 
+- [mods-and-plugins-sortor](#mods-and-plugins-sortor)
+  * [This README.md is for 1.1.0](#this-readmemd-is-for-110)
+  * [What's this project?](#whats-this-project)
+    + [Sort the plugins](#sort-the-plugins)
+    + [Sort the mods](#sort-the-mods)
+    + [Is this meant to replace LOOT?](#is-this-meant-to-replace-loot)
+  * [Requirement](#requirement)
+  * [Features](#features)
+    + [Sort plugins](#sort-plugins)
+    + [Sort mods](#sort-mods)
+      - [Why add this feature?](#why-add-this-feature)
+      - [Category Marks and Order Marks](#category-marks-and-order-marks)
+      - [The Ways to Manage Resources](#the-ways-to-manage-resources)
+    + [Backup before sorting](#backup-before-sorting)
+  * [Usage](#usage)
+  * [Configuration](#configuration)
+  * [Changelog](#changelog)
+  * [Plan](#plan)
+    + [GUI Support](#gui-support)
+
+<!-- tocstop -->
+
 # mods-and-plugins-sortor
 
 "mods-and-plugins-sortor" is a synonym for "Mods and Plugins Sortor for Mod Organizer 2".
@@ -315,11 +337,7 @@ I finally found that when you published some tools for every one to use, you **m
 - all the people **need**
 - **easy to use**
 
+For example, I personally sort mods and plugins by the name priority of those mods, it's base on *INDEPENDENT CONCEPTS*. So in `1.0.x`, force to sort mods. 
 
-
-For example, I personally sort mods and plugins by the name priority of those mods, it's base on *INDEPENDENT CONCEPTS*. So in `1.0.0`, force to sort mods. 
-
-But for most users, they did not sort mods by name, they dragged mods in mod list controls of Mod Organizer 2 to control one mod's priority. So in `1.1.0`, sort mods by name is optional, and disabled by default.
-
-
+But for most users, they did not sort mods by name, they dragged mods in mod list controls of Mod Organizer 2 to set a mod's priority. So in `1.1.0`, sort mods by name is optional, and disabled by default.
 
