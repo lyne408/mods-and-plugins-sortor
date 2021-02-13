@@ -1,13 +1,20 @@
 /**
  * [lyne]
+ *
+ * - 若一个 模块文件 内容是些 功能性函数, 宜函数式编程, 如 导出 多个函数
+ *
+ *  开发工具对导出函数更为友好
+ *
  *  当一个模块导出很多函数时, 对开发就显得不友好了...
  *  函数过多, 有时你会忘记函数名字, 甚至还有重命名函数避免来自多个模块函数名冲突.
+ *  可使用导出全部函数作为新对象, 如 `import * as DateUtil from './DateUtil'`,
+ *      这类似于增设命名空间, 而且 键入 `DateUtil.` 就会提示全部函数
  *
- *  可使用导出全部作为新对象, import * as DateUtil from './DateUtil'
+ * - 若需要对象的存储数据, 需创建机器人, 需职责划分等, 宜用 OOP
  *
- *  虽然 OOP 舒适, 虽然 JS 使用 OOP 耗能增加. 因为原本可能只需导出一些函数对象, 现在将导出一个模块的类中全部属性, 函数.
- *  TypeScript 推荐导出函数, 开发工具对导出函数更为友好...
+ * ----
  *
+ * 所以还是根据业务取舍性能与开放
  *
  */
 
@@ -16,14 +23,14 @@
  * @param {Array<T>} array
  * @return {Set<T>}
  */
-export function arrayToSet<T> (array: Array<T>): Set<T> {
-	return new Set<T>(array)
+export function arrayToSet<T>(array: Array<T>): Set<T> {
+    return new Set<T>(array)
 }
 
-export function isSet (any: any): boolean {
-	return any instanceof Set
+export function isSet(unknown: unknown): boolean {
+    return unknown instanceof Set
 }
 
-export function isNonEmptySet (any: any): boolean {
-	return any instanceof Set && any.size > 0
+export function isNonEmptySet(unknown: unknown): boolean {
+    return unknown instanceof Set && unknown.size > 0
 }

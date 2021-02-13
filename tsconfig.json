@@ -4,9 +4,7 @@
     "module": "commonjs",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    // "strictPropertyInitialization": true,
     "target": "es6",
-    "noImplicitAny": true,
     "moduleResolution": "node",
     "sourceMap": false,
     "outDir": "dist",
@@ -14,6 +12,6 @@
   },
   "include": [
 	"./src",
-	"./index.ts"
+	"./index.d.ts"
   ]
 }

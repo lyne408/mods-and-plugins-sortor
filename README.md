@@ -1,26 +1,16 @@
 [TOC]
 
-<!-- toc -->
+# Docs TODO
 
-- [mods-and-plugins-sortor](#mods-and-plugins-sortor)
-  * [This README.md is for 1.1.0](#this-readmemd-is-for-110)
-  * [What's this project?](#whats-this-project)
-    + [Sort the plugins](#sort-the-plugins)
-    + [Sort the mods](#sort-the-mods)
-    + [Is this meant to replace LOOT?](#is-this-meant-to-replace-loot)
-  * [Requirement](#requirement)
-  * [Features](#features)
-    + [Sort plugins](#sort-plugins)
-    + [Sort mods](#sort-mods)
-      - [Why add this feature?](#why-add-this-feature)
-      - [Category Marks and Order Marks](#category-marks-and-order-marks)
-      - [The Ways to Manage Resources](#the-ways-to-manage-resources)
-    + [Backup before sorting](#backup-before-sorting)
-  * [Usage](#usage)
-  * [Configuration](#configuration)
-  * [Changelog](#changelog)
-  * [Plan](#plan)
-    + [GUI Support](#gui-support)
+- 更改 API
+
+    由低层向业务封装
+
+- 更改代码风格
+- 更改配置选项
+- 分析 Data File 的 Record Flags, WIP
+
+<!-- toc -->
 
 <!-- tocstop -->
 
@@ -58,14 +48,14 @@ Sort the mods of the profiles of Mod Organizer 2, let the mod's name determine i
 If added **order marks** as prefixes of the mod name, it's suitable. Like the five mods' names following.
 
 ```text
-0_0731_[fix]_Unofficial Chinese Translation for Skyrim Special Edition (CHS)-1333-8-19_Standard_Textures
+0_0731_[fix]_Unofficial Chinese Translation for SkyrimSpecialEdition Special Edition (CHS)-1333-8-19_Standard_Textures
 2_[UI]_Favorite Things - Extended Favorites Menu for SkyUI - Superior Favorites-27177-1-0
 3_#LE2SE#_Smile To Camera-92337-0-4 by lyne408
 4_1101_[architecture]_#LE2SE#_06_AIT Architectures - Windhelm
 9_1451_[brow]_SG Female Eyebrows SE-25890-2-0
 ```
 
-If not, en, you may be not need this.
+If not, you may be not need this.
 
 I thought most person not need this, so disabled by default.
 
@@ -74,9 +64,9 @@ I thought most person not need this, so disabled by default.
 No, LOOT sorts plugins automatically by it's database no Github repository, so it's database determine the plugins' load orders.
 This project is used to sort plugins by mods' priority, developed for those person which prefer sorting plugins **manually**. 
 
-## Requirement
+## Requirements
 
-- [**Node.js**](nodejs.org)
+- [**Node.js**](https://nodejs.org)
 
   I use write the project by TypeScrpit, which can be compiled to JavaScript.
   
@@ -185,7 +175,7 @@ Above all:
 There five mods, each name has at least one prefix.
 
 ```txt
-0_0731_[fix]_Unofficial Chinese Translation for Skyrim Special Edition (CHS)-1333-8-19_Standard_Textures
+0_0731_[fix]_Unofficial Chinese Translation for SkyrimSpecialEdition Special Edition (CHS)-1333-8-19_Standard_Textures
 2_[UI]_Favorite Things - Extended Favorites Menu for SkyUI - Superior Favorites-27177-1-0
 3_#LE2SE#_Smile To Camera-92337-0-4 by lyne408
 4_1101_[architecture]_#LE2SE#_06_AIT Architectures - Windhelm
@@ -227,7 +217,7 @@ If **DISAGREE** with *INDEPENDENT CONCEPTS*, you don't need this feature.
 
 This feature is **optional**, *enabled* by default.
 
-Before sorting, the program will backup the modlist.txt, plugins.txt, loadorder.txt file.
+Before sorting, this program will backup the modlist.txt, plugins.txt and loadorder.txt files.
 
 The name of backup file is like `modlist.txt_backup_2020-05-29_17-53-12_955`.
 
@@ -250,8 +240,8 @@ The name of backup file is like `modlist.txt_backup_2020-05-29_17-53-12_955`.
     
 2. Instanll **Mod Organizer 2**, when first running, choose **Portable** mode.
 	
-	En, I just use MO2 **Portable** instance.
-	Open files tab of the webpage of Mod Organizer 2, recommemd download the file "Mod Organizer 2 (Archive)".
+	I just use MO2 **Portable** instance.
+	Open files tab of the webpage of Mod Organizer 2, recommend download the file "Mod Organizer 2 (Archive)".
 	Ensure choose **Portable** mode, because the project just support MO2 **Portable** instance.
 
 3. Download the latest release and extract it.
@@ -278,7 +268,9 @@ The name of backup file is like `modlist.txt_backup_2020-05-29_17-53-12_955`.
     
     ![sort-done](./docs/assets/sort-done.jpg)
 
-6. After sorting, reload selected profile(such as switch to another profile then switch back).
+6. After sorting, reload selected profile.
+
+    For example, switch to another profile then switch back.
 
 ## Configuration
 
@@ -332,7 +324,7 @@ See `docs/Changelog.md`.
 
 ### GUI Support
 
-I finally found that when you published some tools for every one to use, you **must consider**:
+I finally found that before you publish some tools for every one to use, you **must consider**:
 
 - all the people **need**
 - **easy to use**
@@ -341,3 +333,10 @@ For example, I personally sort mods and plugins by the name priority of those mo
 
 But for most users, they did not sort mods by name, they dragged mods in mod list controls of Mod Organizer 2 to set a mod's priority. So in `1.1.0`, sort mods by name is optional, and disabled by default.
 
+### Plugin's header
+
+一些 esp, esl 拥有 master 的 header.
+SkyrimSE 载入插件的顺序时, **lyne 估计是** 优先载入 master header 的插件. 所以 MO2 plugin list 显示的可能与实际载入顺序有差别, 可能导致用命令获取不到物品.
+可以参考 MO2, NO2 是以粗体显示 master header 的 plugins.
+
+**上不确定 SkyrimSE 载入机制**, 还见过 ESM 是 FE 载入顺序的.

@@ -1,10 +1,14 @@
-import { ExecutionConfig, SortSelectedProfileParameter, SortAllProfilesParameter } from './src/ModManagerTwo'
+import {
+  SortSelectedProfileParameter,
+  SortAllProfilesParameter,
+  SortProfilesByConfigParameter,
+  SortProfileParameter
+} from './src/ModOrganizerTwo'
 
-export default class ModManagerTwo {
-  init (installationDirectory: string): Promise <void>
+export default class ModOrganizerTwo {
+  init (mo2ConfigFilePath: string): Promise <void>
+  sortProfile (argObj: SortProfileParameter): Promise <void>
   sortSelectedProfile (argObj: SortSelectedProfileParameter): Promise <void>
   sortAllProfiles (argObj: SortAllProfilesParameter): Promise <void>
-  static sortProfilesByConfig (executionConfig: ExecutionConfig):Promise <void>
+  static sortProfilesByConfig (argObj: SortProfilesByConfigParameter):Promise <void>
 }
-
-export function sortProfilesByConfig (executionConfig: ExecutionConfig): Promise <void>
