@@ -1,5 +1,17 @@
 [TOC]
 
+> **W:**
+> 
+> 1. Now this repository has the following problems:
+> 
+>   - Offending code style.
+>   - Offending API.
+>   
+> 2. Mod Organizer 2 `2.3.x` does not display the real load order or Form index, use SSEEdit to view. 
+>
+> These problems will be fixed, WIP. 
+
+
 # Docs TODO
 
 - 更改 API
