@@ -5,7 +5,7 @@
 > 1. Now this repository has the following problems:
 > 
 >   - Offending code style.
->   - Offending API.
+>   - Offending API. Aha, thanks for the command-like API of Some One Runtime.
 >   
 > 2. Mod Organizer 2 `2.3.x` does not display the real load order or Form index, use SSEEdit to view. 
 >
@@ -21,6 +21,8 @@
 - 更改代码风格
 - 更改配置选项
 - 分析 Data File 的 Record Flags, WIP
+- Use Dart to program, TODO
+- Use Flutter as GUI 
 
 <!-- toc -->
 
