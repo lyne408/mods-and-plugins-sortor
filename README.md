@@ -1,28 +1,19 @@
-[TOC]
+# This repository was aborted. Node.js is not suitable for client usage.
+
+# If necessary, I'll develop those features as CPP or Python plugins of Mod Organizer 2.
+
+# As for now, It's a temporary solution to sort plugins by mod names.
 
 > **WARNING:**
 > 
 > 1. Now this repository has the following problems:
 > 
->   - Offending code style.
->   - Offending API. Aha, thanks for the command-like API of Some One Runtime.
+>   - Bad code style.
+>   - Bad API.
 >   
 > 2. Mod Organizer 2 `2.3.x` does not display the real load order or Form index, use SSEEdit to view. 
 >
 > These problems will be fixed, WIP. 
-
-
-# Docs TODO
-
-- 更改 API
-
-    由低层向业务封装
-
-- 更改代码风格
-- 更改配置选项
-- 分析 Data File 的 Record Flags, WIP
-- Use Dart to program, TODO
-- Use Flutter as GUI 
 
 <!-- toc -->
 
